@@ -258,3 +258,230 @@ Rayfield:Notify({
     Content = "Loaded successfully (" .. CurrentSea .. ")",
     Duration = 3
 })
+-- =========================
+-- ADVANCED AUTOFARM + ESP
+-- =========================
+
+-- NEW TAB
+local VisualsTab = Window:CreateTab("Visuals", "eye")
+AutofarmTab:CreateSection("Combat Farms")
+VisualsTab:CreateSection("ESP Options")
+
+-- SERVICES
+local VirtualUser = game:GetService("VirtualUser")
+
+-- STATES
+local AutoLevel = false
+local AutoBoss = false
+local AutoRaid = false
+
+local WeaponType = "Melee"
+
+-- =========================
+-- WEAPON SELECT
+-- =========================
+AutofarmTab:CreateDropdown({
+    Name = "Weapon Select",
+    Options = {"Melee", "Fruit", "Sword", "Gun"},
+    CurrentOption = "Melee",
+    Callback = function(opt)
+        WeaponType = typeof(opt) == "table" and opt[1] or opt
+    end
+})
+
+local function EquipWeapon()
+    local char = LP.Character
+    if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local bp = LP:FindFirstChild("Backpack")
+    if not hum or not bp then return end
+
+    for _, tool in ipairs(bp:GetChildren()) do
+        if tool:IsA("Tool") then
+            if WeaponType == "Melee" and tool.ToolTip == "Melee" then hum:EquipTool(tool) return end
+            if WeaponType == "Sword" and tool.ToolTip == "Sword" then hum:EquipTool(tool) return end
+            if WeaponType == "Gun" and tool.ToolTip == "Gun" then hum:EquipTool(tool) return end
+            if WeaponType == "Fruit" and tool.ToolTip == "Blox Fruit" then hum:EquipTool(tool) return end
+        end
+    end
+end
+
+-- =========================
+-- SAFE ATTACK SYSTEM
+-- =========================
+local function AttackEnemy(enemy)
+    if not enemy
+    or not enemy:FindFirstChild("Humanoid")
+    or not enemy:FindFirstChild("HumanoidRootPart")
+    or enemy.Humanoid.Health <= 0 then return end
+
+    EquipWeapon()
+
+    -- USE SAME SAFE TWEEN AS TELEPORT TAB
+    TweenTo(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 6))
+
+    VirtualUser:Button1Down(Vector2.new(0,0))
+    task.wait(0.06)
+    VirtualUser:Button1Up(Vector2.new(0,0))
+end
+
+-- =========================
+-- LEVEL / MONEY FARM
+-- =========================
+AutofarmTab:CreateToggle({
+    Name = "Auto Level / Money",
+    CurrentValue = false,
+    Callback = function(v)
+        AutoLevel = v
+        task.spawn(function()
+            while AutoLevel do
+                pcall(function()
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if enemy:FindFirstChild("Humanoid")
+                        and enemy.Humanoid.Health > 0 then
+                            AttackEnemy(enemy)
+                        end
+                    end
+                end)
+                task.wait(0.15)
+            end
+        end)
+    end
+})
+
+-- =========================
+-- BOSS FARM
+-- =========================
+AutofarmTab:CreateToggle({
+    Name = "Auto Boss Farm",
+    CurrentValue = false,
+    Callback = function(v)
+        AutoBoss = v
+        task.spawn(function()
+            while AutoBoss do
+                pcall(function()
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if enemy.Name:lower():find("boss")
+                        and enemy:FindFirstChild("Humanoid")
+                        and enemy.Humanoid.Health > 0 then
+                            AttackEnemy(enemy)
+                        end
+                    end
+                end)
+                task.wait(0.2)
+            end
+        end)
+    end
+})
+
+-- =========================
+-- RAID / FRAGMENT FARM
+-- =========================
+AutofarmTab:CreateToggle({
+    Name = "Auto Raid (Fragments/Beli)",
+    CurrentValue = false,
+    Callback = function(v)
+        AutoRaid = v
+        task.spawn(function()
+            while AutoRaid do
+                pcall(function()
+                    for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+                        if enemy:FindFirstChild("Humanoid")
+                        and enemy.Humanoid.Health > 0 then
+                            AttackEnemy(enemy)
+                        end
+                    end
+                end)
+                task.wait(0.12)
+            end
+        end)
+    end
+})
+
+-- =========================
+-- ESP SYSTEM
+-- =========================
+local ESPObjects = {}
+local function CreateESP(part, text, color)
+    if not part or ESPObjects[part] then return end
+
+    local gui = Instance.new("BillboardGui")
+    gui.Name = "ESP"
+    gui.Adornee = part
+    gui.Size = UDim2.new(0, 120, 0, 40)
+    gui.AlwaysOnTop = true
+    gui.Parent = part
+
+    local lbl = Instance.new("TextLabel", gui)
+    lbl.Size = UDim2.new(1,0,1,0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = color or Color3.new(1,1,1)
+    lbl.TextStrokeTransparency = 0
+
+    ESPObjects[part] = gui
+end
+
+local function ClearESP()
+    for part, gui in pairs(ESPObjects) do
+        if gui then gui:Destroy() end
+        ESPObjects[part] = nil
+    end
+end
+
+
+VisualsTab:CreateToggle({
+    Name = "Player ESP",
+    Callback = function(v)
+        ClearESP()
+        if not v then return end
+
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LP and p.Character and p.Character:FindFirstChild("Head") then
+                CreateESP(p.Character.Head, p.Name, Color3.fromRGB(0,255,255))
+            end
+        end
+    end
+})
+
+VisualsTab:CreateToggle({
+    Name = "NPC ESP",
+    Callback = function(v)
+            ClearESP()
+            if not v then return end
+            
+        for _, npc in pairs(workspace.Enemies:GetChildren()) do
+            if npc:FindFirstChild("Head") and v then
+                CreateESP(npc.Head, npc.Name, Color3.fromRGB(255,0,0))
+            end
+        end
+    end
+})
+
+VisualsTab:CreateToggle({
+    Name = "Chest ESP",
+    Callback = function(v)
+            ClearESP()
+            if not v then return end
+            
+        for _, c in pairs(workspace:GetDescendants()) do
+            if c:IsA("BasePart") and c.Name:lower():find("chest") and v then
+                CreateESP(c, "Chest", Color3.fromRGB(255,215,0))
+            end
+        end
+    end
+})
+
+VisualsTab:CreateToggle({
+    Name = "Fruit ESP",
+    Callback = function(v)
+            ClearESP()
+            if not v then return end
+            
+        for _, f in pairs(workspace:GetDescendants()) do
+            if f.Name:lower():find("fruit") and f:IsA("Tool") and f:FindFirstChild("Handle") and v then
+                CreateESP(f.Handle, f.Name, Color3.fromRGB(0,255,0))
+            end
+        end
+    end
+})
