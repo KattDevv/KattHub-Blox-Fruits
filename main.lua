@@ -1,8 +1,10 @@
+-- LOAD RAYFIELD
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+-- WINDOW
 local Window = Rayfield:CreateWindow({
    Name = "KattHub | Blox Fruits",
-   Icon = 129406512764319,
+   Icon = 0,
    LoadingTitle = "KattHub",
    LoadingSubtitle = "Welcome",
    ShowText = "KattHub",
@@ -36,18 +38,22 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local MainTab = Window:CreateTab("Home", "house")
+-- TABS
+local MainTab = Window:CreateTab("Home", house)
 local TeleportTab = Window:CreateTab("Teleports", "map")
 local AutofarmTab = Window:CreateTab("Autofarm", "coins")
 
+-- SECTIONS
 MainTab:CreateSection("Simple Exploits")
 TeleportTab:CreateSection("Tween To Islands")
 AutofarmTab:CreateSection("Chest Farming")
 
+-- SERVICES
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local LP = Players.LocalPlayer
 
+-- STATE
 local TweenEnabled = false
 local SelectedCFrame = nil
 local CurrentTween = nil
@@ -56,6 +62,7 @@ local StopTween = false
 local ChestFarmEnabled = false
 local ChestFarmThread = nil
 
+-- WALKSPEED
 MainTab:CreateSlider({
    Name = "Set WalkSpeed",
    Range = {0, 500},
@@ -69,6 +76,7 @@ MainTab:CreateSlider({
    end
 })
 
+-- SEA DETECTION
 local PlaceId = game.PlaceId
 local CurrentSea =
     PlaceId == 2753915549 and "Sea 1" or
@@ -76,6 +84,7 @@ local CurrentSea =
     PlaceId == 7449423635 and "Sea 3" or
     "Unknown"
 
+-- ISLANDS
 local Islands = {
     ["Sea 1"] = {
         ["Starter Island"] = CFrame.new(1071,16,1426),
@@ -125,6 +134,7 @@ local Islands = {
     }
 }
 
+-- SAFE TWEEN
 local function TweenTo(cf)
     StopTween = false
     local char = LP.Character or LP.CharacterAdded:Wait()
@@ -151,6 +161,7 @@ local function TweenTo(cf)
     end
 end
 
+-- TELEPORT UI
 local Options = {}
 for name in pairs(Islands[CurrentSea] or {}) do
     table.insert(Options, name)
@@ -182,6 +193,7 @@ TeleportTab:CreateToggle({
     end
 })
 
+-- 🔥 OPTIMIZED CHEST FARM
 local CachedChests = {}
 
 local function CacheChests()
@@ -240,24 +252,34 @@ AutofarmTab:CreateToggle({
 })
 
 
+-- NOTIFY
 Rayfield:Notify({
     Title = "KattHub",
     Content = "Loaded successfully (" .. CurrentSea .. ")",
     Duration = 3
 })
+-- =========================
+-- ADVANCED AUTOFARM + ESP
+-- =========================
 
+-- NEW TAB
 local VisualsTab = Window:CreateTab("Visuals", "eye")
 AutofarmTab:CreateSection("Combat Farms")
 VisualsTab:CreateSection("ESP Options")
 
+-- SERVICES
 local VirtualUser = game:GetService("VirtualUser")
 
+-- STATES
 local AutoLevel = false
 local AutoBoss = false
 local AutoRaid = false
 
 local WeaponType = "Melee"
 
+-- =========================
+-- WEAPON SELECT
+-- =========================
 AutofarmTab:CreateDropdown({
     Name = "Weapon Select",
     Options = {"Melee", "Fruit", "Sword", "Gun"},
@@ -284,6 +306,9 @@ local function EquipWeapon()
     end
 end
 
+-- =========================
+-- SAFE ATTACK SYSTEM
+-- =========================
 local function AttackEnemy(enemy)
     if not enemy
     or not enemy:FindFirstChild("Humanoid")
@@ -292,6 +317,7 @@ local function AttackEnemy(enemy)
 
     EquipWeapon()
 
+    -- USE SAME SAFE TWEEN AS TELEPORT TAB
     TweenTo(enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, 6))
 
     VirtualUser:Button1Down(Vector2.new(0,0))
@@ -299,6 +325,9 @@ local function AttackEnemy(enemy)
     VirtualUser:Button1Up(Vector2.new(0,0))
 end
 
+-- =========================
+-- LEVEL / MONEY FARM
+-- =========================
 AutofarmTab:CreateToggle({
     Name = "Auto Level / Money",
     CurrentValue = false,
@@ -320,6 +349,9 @@ AutofarmTab:CreateToggle({
     end
 })
 
+-- =========================
+-- BOSS FARM
+-- =========================
 AutofarmTab:CreateToggle({
     Name = "Auto Boss Farm",
     CurrentValue = false,
@@ -342,6 +374,9 @@ AutofarmTab:CreateToggle({
     end
 })
 
+-- =========================
+-- RAID / FRAGMENT FARM
+-- =========================
 AutofarmTab:CreateToggle({
     Name = "Auto Raid (Fragments/Beli)",
     CurrentValue = false,
@@ -363,6 +398,9 @@ AutofarmTab:CreateToggle({
     end
 })
 
+-- =========================
+-- ESP SYSTEM
+-- =========================
 local ESPObjects = {}
 local function CreateESP(part, text, color)
     if not part or ESPObjects[part] then return end
